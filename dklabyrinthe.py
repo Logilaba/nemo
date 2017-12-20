@@ -93,13 +93,15 @@ while prochaine_etape != FIN:
 
 	vie = 5
 	if choix_perso != 0:
-		ms = Monstres("images/monstre_gauche.png", "images/monstre_droite.png",
-		"images/monstre_dos.png", "images/monstre_face.png", niveau)
+		ms = Monstre("images/monstre_gauche.png", "images/monstre_droite.png",
+					 "images/monstre_dos.png", "images/monstre_face.png",
+					 niveau)
+
 		if choix_perso == "Alex":
-			dk = Perso("images/droite.png", "images/gauche.png",
+			dk = Hero("images/droite.png", "images/gauche.png",
 			"images/dos.png", "images/face.png", niveau, choix_perso, vie)
 		else:
-			dk = Perso("images/vampire_droit.png", "images/vampire_gauche.png",
+			dk = Hero("images/vampire_droit.png", "images/vampire_gauche.png",
 			"images/vampire_dos.png", "images/vampire_face.png", niveau, choix_perso, vie)
 
 
