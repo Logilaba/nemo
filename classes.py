@@ -59,12 +59,13 @@ class Niveau:
 			num_ligne += 1
 
 class Perso:
-	def __init__(self, droite, gauche, haut, bas, niveau):
+	def __init__(self, droite, gauche, haut, bas, niveau, ciel):
 		#Sprites du personnage
 		self.droite = pygame.image.load(droite).convert_alpha()
 		self.gauche = pygame.image.load(gauche).convert_alpha()
 		self.haut = pygame.image.load(haut).convert_alpha()
 		self.bas = pygame.image.load(bas).convert_alpha()
+		self.ciel = pygame.image.load(haut).convert_alpha()
 		#Position du personnage en cases et en pixels
 		self.case_x = 0
 		self.case_y = 0
@@ -75,17 +76,25 @@ class Perso:
 		#Niveau dans lequel le personnage se trouve
 		self.niveau = niveau
 
-	def teleporter(self, nouveau_niveau):
+
+	def teleporter(self, nouveau_niveau, x = 0, y = 0, case_x = 0, case_y = 0):
 		self.niveau = nouveau_niveau
-		self.case_x = 0
-		self.case_y = 0
-		self.x = 0
-		self.y = 0
+		self.case_x = case_x
+		self.case_y = case_y
+		self.x = x
+		self.y = y
+
+
+	def retour(self):
+		self.teleporter(self.niveau)
+
 
 	def deplacer(self, direction):
 			#Déplacement vers la droite
+		print("direction "+direction)
 		if direction == 'droite':
 			#Pour ne pas dépasser l'écran
+			print("x ",self.case_x)
 			if self.case_x < (nombre_sprite_cote - 1):
 				#On vérifie que la case de destination n'est pas un mur
 				if self.niveau.structure[self.case_y][self.case_x+1] != 'm':
@@ -98,6 +107,7 @@ class Perso:
 
 		#Déplacement vers la gauche
 		if direction == 'gauche':
+			print("x ",self.case_x)
 			if self.case_x > 0:
 				if self.niveau.structure[self.case_y][self.case_x-1] != 'm':
 					self.case_x -= 1
@@ -120,14 +130,74 @@ class Perso:
 					self.y = self.case_y * taille_sprite
 			self.direction = self.bas
 
+		if direction == 'ciel':
+			if self.case_y > 0:
+					self.case_y -= 2
+					self.y = self.case_y * taille_sprite
+			self.direction = self.haut
+
 
 
 class Monstre(Perso):
-	pass
+	def __init__(self, droite, gauche, haut, bas, niveau, ciel):
+		super(Monstre, self).__init__(droite, gauche, haut, bas, niveau, ciel)
+
+		self.poid = 0.1
+		self.vie = 10
+
+	def graviter(self):
+		return Graviter ()
 
 class Hero(Perso):
-	def __init__(self, droite, gauche, haut, bas, niveau, nom, vie):
-		super(Hero, self).__init__(droite, gauche, haut, bas, niveau)
+	def __init__(self, droite, gauche, haut, bas, niveau, nom, ciel,):
+		super(Hero, self).__init__(droite, gauche, haut, bas, niveau, ciel,)
 
 		self.nom = nom
-		self.vie = vie
+		self.vie = 5
+
+	def pouvoir(self):
+		return Pouvoir(image_pouvoir, 4, self.direction, self.x, self.y,
+		self.case_x, self.case_y, self.gauche, self.droite)
+
+
+class Pouvoir():
+
+	def __init__(self, image, distance, direction, x, y, case_x, case_y, droite , gauche):
+		self.image = image
+		self.distance = distance
+		self.direction = direction
+		self.case_x = case_x
+		self.case_y = case_y
+		self.x = x
+		self.y = y
+		self.droite = droite
+		self.gauche = gauche
+
+	def fini(self):
+		if self.distance <= 0:
+			return True
+		else:
+			return False
+
+	def pas_fini(self):
+		return not self.fini()
+
+	def deplacer (self, direction):
+		if direction == 'droite':
+			if self.case_x < (nombre_sprite_cote - 1):
+				self.case_x += 1
+				self.x = self.case_x * taille_sprite
+			self.direction = self.droite
+
+		if direction == 'gauche':
+			if self.case_x > 0:
+				self.case_x -= 1
+				self.x = self.case_x * taille_sprite
+			self.direction = self.gauche
+
+		self.distance -= 1
+
+class Graviter():
+	def _init_ (self, poid, personnage):
+		self.poid = 1,8
+		self.personnage = Monstre

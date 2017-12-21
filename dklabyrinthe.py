@@ -25,6 +25,7 @@ icone = pygame.image.load(image_icone)
 pygame.display.set_icon(icone)
 #Titre
 pygame.display.set_caption(titre_fenetre)
+bl = pygame.image.load(image_pouvoir).convert_alpha()
 fin = pygame.image.load(image_defin).convert()
 info = pygame.image.load(image_dinfo).convert()
 fond_demon = pygame.image.load(image_Fdemon).convert()
@@ -32,8 +33,10 @@ mur_demon = pygame.image.load(image_Mdemon).convert()
 accueil = pygame.image.load(image_accueil).convert()
 fond = pygame.image.load(image_fond).convert()
 perso_choix = pygame.image.load(image_perso).convert()
+point_vie_monstre = pygame.font.SysFont ("Arial", 12)
 point_vie = pygame.font.SysFont ("Arial", 12)
 coeur = pygame.image.load(image_coeur).convert_alpha()
+defaite = pygame.image.load(image_defaite).convert()
 
 #BOUCLE PRINCIPALE
 
@@ -66,7 +69,9 @@ while prochaine_etape != FIN:
 				elif event.key == K_F4:
 					choix = "n4"
 					prochaine_etape = "choix_perso"
-
+				elif event.key == K_F5:
+					choix = "n5"
+					prochaine_etape = "choix_perso"
 	if choix != 0:
 		niveau = Niveau(choix)
 
@@ -91,19 +96,23 @@ while prochaine_etape != FIN:
 					demon = False
 					prochaine_etape = INFO
 
-	vie = 5
-	if choix_perso != 0:
-		ms = Monstre("images/monstre_gauche.png", "images/monstre_droite.png",
-					 "images/monstre_dos.png", "images/monstre_face.png",
-					 niveau)
+	poid = 0.1
+	ms = Monstre("images/monstre_gauche.png", "images/monstre_droite.png",
+				 "images/monstre_dos.png", "images/monstre_face.png",
+		 		niveau, "images/monstre_face.png")
 
+	# ms.x = 420
+
+	# ms.y = 420
+	# ms.case_x = 14
+	# ms.case_y = 14
+	if choix_perso != 0:
 		if choix_perso == "Alex":
 			dk = Hero("images/droite.png", "images/gauche.png",
-			"images/dos.png", "images/face.png", niveau, choix_perso, vie)
+			"images/dos.png", "images/face.png", niveau, choix_perso,"images/vampire_face.png")
 		else:
 			dk = Hero("images/vampire_droit.png", "images/vampire_gauche.png",
-			"images/vampire_dos.png", "images/vampire_face.png", niveau, choix_perso, vie)
-
+			"images/vampire_dos.png", "images/vampire_face.png", niveau, choix_perso, "images/vampire_face.png")
 
 		niveau.generer()
 		niveau.afficher(fenetre)
@@ -111,7 +120,6 @@ while prochaine_etape != FIN:
 
 	#BOUCLE DE info
 		while prochaine_etape == INFO:
-			print("info")
 			fenetre.blit(info,(0,0))
 			pygame.display.flip()
 			pygame.time.Clock().tick(30)
@@ -121,14 +129,14 @@ while prochaine_etape != FIN:
 				if event.type == QUIT or event.type == KEYDOWN and event.key == K_ESCAPE:
 					prochaine_etape = FIN
 				elif event.type == KEYDOWN:
-					prochaine_etape = NIVEAU_1
-					etape = NIVEAU_1
+					prochaine_etape = NIVEAU_4
+					etape = NIVEAU_4
 
 
 
 
 
-	#BOUCLE DE NIVEAU 1
+	#BOUCLE DE NIVEAU
 	pygame.display.flip()
 	fenetre.blit (coeur,(300,20))
 	for numero_niveau in range(1, 5) :
@@ -136,11 +144,11 @@ while prochaine_etape != FIN:
 		niveau.generer()
 		niveau.afficher(fenetre)
 		dk.teleporter(niveau)
+		ms.teleporter(niveau, 420, 420, 14, 14)
 		prochaine_etape = "niveau " + str(numero_niveau)
 		while prochaine_etape == etape:
 			pygame.time.Clock().tick(30)
 			pv = point_vie.render (str(dk.vie),1,(255,255,255))
-
 			for event in pygame.event.get():
 				if event.type == QUIT:
 					prochaine_etape = FIN
@@ -159,6 +167,8 @@ while prochaine_etape != FIN:
 					elif event.key == K_DOWN:
 						dk.deplacer('bas')
 
+
+
 					elif event.key == K_z:
 						ms.deplacer("haut")
 					elif event.key == K_s:
@@ -176,8 +186,8 @@ while prochaine_etape != FIN:
 			niveau.afficher(fenetre)
 			fenetre.blit(dk.direction, (dk.x, dk.y))
 			fenetre.blit(ms.direction, (ms.x, ms.y))
-			fenetre.blit (coeur,(415,4))
-			fenetre.blit(pv, (425, 10))
+			fenetre.blit (coeur,(90, 0))
+			fenetre.blit(pv, (100, 6))
 			pygame.display.flip()
 
 
@@ -185,19 +195,130 @@ while prochaine_etape != FIN:
 
 			if niveau.structure[dk.case_y][dk.case_x] == 'a':
 				etape = "niveau " + str(numero_niveau + 1)
-				prochaine_etape = VICTOIRE
+				prochaine_etape = "niveau_5"
 
 			if personnages_au_meme_endroit(dk, ms):
 				if dk.vie > 0:
 					dk.vie = dk.vie - 1
-				else:
-					prochaine_etape = VICTOIRE
+					dk.retour()
+
+
+			if dk.vie == 0:
+				etape = "niveau " + str(numero_niveau + 1)
+				prochaine_etape = DEFAITE
+
+	numero_niveau = 5
+	niveau = Niveau('n' + str(numero_niveau), demon)
+	niveau.generer()
+	niveau.afficher(fenetre)
+	dk.teleporter(niveau, 0, 300, 0, 10)
+	ms.teleporter(niveau, 420, 300, 14, 10)
+	prochaine_etape = "niveau_5"
+
+	pouvoir = None
+	perso_position = "droite"
+
+	while prochaine_etape == "niveau_5":
+		print('coucou', etape)
+		pygame.time.Clock().tick(30)
+		pvm = point_vie_monstre.render (str(ms.vie),1,(255,255,255))
+		pv = point_vie.render (str(dk.vie),1,(255,255,255))
+
+		if pouvoir and pouvoir.pas_fini():
+			pouvoir.deplacer(perso_position)
+
+		for event in pygame.event.get():
+			if event.type == QUIT:
+				prochaine_etape = FIN
+
+			elif event.type == KEYDOWN:
+				if event.key == K_ESCAPE:
+					prochaine_etape = ACCUEIL
+
+				#Touches de déplacement de Donkey Kong
+				elif event.key == K_RIGHT:
+					perso_position = "droite"
+					dk.deplacer(perso_position)
+				elif event.key == K_LEFT:
+					perso_position = 'gauche'
+					dk.deplacer(perso_position)
+				elif event.key == K_UP:
+					perso_position = 'haut'
+					dk.deplacer(perso_position)
+				elif event.key == K_DOWN:
+					perso_position = 'bas'
+					dk.deplacer(perso_position)
+				elif event.key == K_p:
+					pouvoir = dk.pouvoir()
+
+				elif event.key == K_SPACE:
+					ms.deplacer("ciel")
+				elif event.key == K_a:
+					ms.deplacer("gauche")
+				elif event.key == K_d:
+					ms.deplacer("droite")
+
+
+
+
+		if demon == False:
+			fenetre.blit(fond, (0,0))
+		else:
+			fenetre.blit(fond_demon, (0,0))
+		niveau.afficher(fenetre)
+		fenetre.blit(dk.direction, (dk.x, dk.y))
+		fenetre.blit(ms.direction, (ms.x, ms.y))
+		fenetre.blit (coeur,(415,4))
+		fenetre.blit(pvm, (423, 10))
+		fenetre.blit (coeur,(90, 0))
+		fenetre.blit(pv, (100, 6))
+		if pouvoir != None and pouvoir.pas_fini():
+			fenetre.blit(bl, (pouvoir.x, pouvoir.y))
+
+		if pouvoir and pouvoir.fini():
+			pouvoir = None
+
+		pygame.display.flip()
+
+
+		if personnages_au_meme_endroit(dk, ms):
+			if dk.vie > 0:
+				dk.vie = dk.vie - 1
+				dk.retour()
+
+		if dk.vie == 0:
+			prochaine_etape = DEFAITE
+
+		if pouvoir is not None and pouvoir_touche_monstre(pouvoir, ms):
+			if ms.vie > 0:
+				ms.vie = ms.vie - 1
+
+
+
+
+
+
+		if ms.vie == 0:
+			prochaine_etape = VICTOIRE
+
 
 
 	#BOUCLE DE VICTOIRE
 	while prochaine_etape == VICTOIRE:
 		pygame.time.Clock().tick(30)
 		fenetre.blit(fin, (0,0))
+		pygame.display.flip()
+		for event in pygame.event.get():
+			if event.type == QUIT:
+				prochaine_etape = FIN
+
+			elif event.type == KEYDOWN:
+				if event.key == K_ESCAPE:
+					prochaine_etape = FIN
+	#BOUCLE DEFAITTE
+	while prochaine_etape == DEFAITE:
+		pygame.time.Clock().tick(30)
+		fenetre.blit(defaite, (0,0))
 		pygame.display.flip()
 		for event in pygame.event.get():
 			if event.type == QUIT:
